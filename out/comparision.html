@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convex Hull Algorithms</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        position: relative;
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      code {
+        font-family: monospace;
+        background-color: #f5f5f5;
+        padding: 2px 5px;
+      }
+      .home-link {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        text-decoration: none;
+        color: #1a73da;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../" class="home-link">Home</a>
+
+    <h1>Convex Hull Algorithms</h1>
+
+    <h2>1. Jarvis March Algorithm</h2>
+    <p>
+      The Jarvis March algorithm is a simple and intuitive method for finding
+      the convex hull of a set of points. It starts with the leftmost point (or
+      any other point on the hull) and wraps the remaining points in a
+      counterclockwise (or clockwise) fashion, selecting the next point that
+      makes the smallest possible counterclockwise (or clockwise) angle with the
+      previous two points. The algorithm continues this process until it returns
+      to the starting point, forming the convex hull.
+    </p>
+    <p>
+      <strong>Time Complexity:</strong> <code>O(nh)</code>, where
+      <code>n</code> is the number of points and <code>h</code> is the number of
+      points on the convex hull. In the worst case, where all points are on the
+      convex hull, the time complexity becomes <code>O(n^2)</code>.
+    </p>
+
+    <h2>2. Kirkpatrick-Seidel Algorithm</h2>
+    <p>
+      The Kirkpatrick-Seidel algorithm is a more complex and efficient method
+      for constructing the convex hull of a set of points. It is a
+      divide-and-conquer algorithm that recursively splits the set of points
+      into smaller subsets and constructs the convex hull for each subset. The
+      algorithm then merges the convex hulls of the subsets to form the overall
+      convex hull.
+    </p>
+    <p>
+      The merging step is optimized using a technique called the
+      "marriage-before-conquest" approach, which involves pre-sorting the points
+      based on their x-coordinates and performing a linear scan to merge the
+      hulls efficiently.
+    </p>
+    <p>
+      <strong>Time Complexity:</strong> <code>O(n log h)</code>, where
+      <code>n</code> is the number of points and <code>h</code> is the number of
+      points on the convex hull. This is better than the Jarvis March algorithm
+      for large input sizes and when the number of points on the convex hull is
+      significantly smaller than the total number of points.
+    </p>
+
+    <p>
+      The choice between these algorithms depends on the specific requirements
+      of the problem, such as the input size, the distribution of points, and
+      the desired trade-off between simplicity and efficiency.
+    </p>
+  </body>
+</html>

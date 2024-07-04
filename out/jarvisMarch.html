@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>JarvisMarch Input Size vs Runtime Plot</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <canvas id="myChart"></canvas>
+    <script>
+      function Point(x, y) {
+        this.x = x || 0;
+        this.y = y || 0;
+      }
+
+      function twodArrtoPoint(arr) {
+        let far = [];
+        for (let i = 0; i < arr.length; i++) {
+          far.push(Point(i[0], i[1]));
+        }
+        return far;
+      }
+
+      function shallowEqualityCheck(obj1, obj2) {
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+        if (keys1.length !== keys2.length) {
+          return false;
+        }
+        for (const key of keys1) {
+          if (obj1[key] !== obj2[key]) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function findAngle(prev_o, o, p) {
+        let dAx = o.x - prev_o.x;
+        let dAy = o.y - prev_o.y;
+        let dBx = p.x - o.x;
+        let dBy = p.y - o.y;
+        let angle = Math.atan2(dAx * dBy - dAy * dBx, dAx * dBx + dAy * dBy);
+        let degree_angle = angle * (180 / Math.PI);
+        degree_angle = degree_angle + 180;
+        return degree_angle;
+      }
+      function findNextOrigin(prev_o, o, points) {
+        let best_angle = 360;
+        let best_point = null;
+        // console.log(o)
+        for (let i = 0; i < points.length; i++) {
+          if (
+            JSON.stringify(points[i]) === JSON.stringify(o) ||
+            JSON.stringify(points[i]) === JSON.stringify(prev_o)
+          ) {
+            continue;
+          }
+          let angle = findAngle(prev_o, o, points[i]);
+          if (angle < best_angle) {
+            best_angle = angle;
+            best_point = JSON.parse(JSON.stringify(points[i]));
+            // console.log(best_point)
+          } else if (angle == best_angle) {
+            if (
+              Math.hypot(o.x - best_point.x, o.y - best_point.y) >
+              Math.hypot(o.x - points[i].x, o.y - points[i].y)
+            ) {
+              best_angle = angle;
+              best_point = JSON.parse(JSON.stringify(points[i]));
+            }
+          }
+        }
+        return best_point;
+      }
+      function generateRandomPoints(numPoints, maxX, maxY) {
+        const points = [];
+
+        for (let i = 0; i < numPoints; i++) {
+          const x = Math.floor(Math.random() * (maxX + 1)); // Random x-coordinate between 0 and maxX (inclusive)
+          const y = Math.floor(Math.random() * (maxY + 1)); // Random y-coordinate between 0 and maxY (inclusive)
+          let temp = new Point(x, y);
+          points.push(temp);
+        }
+
+        return points;
+      }
+      function Jarvis(noOfPoints) {
+        let points = generateRandomPoints(noOfPoints, 500, 500);
+        // let points=twodArrtoPoint(fpoints)
+        console.log(points);
+        let hull = [];
+        let origin = new Point(
+          Number.MAX_SAFE_INTEGER,
+          Number.MAX_SAFE_INTEGER
+        );
+        for (let i = 0; i < points.length; i++) {
+          if (origin.y > points[i].y) {
+            origin = JSON.parse(JSON.stringify(points[i]));
+          }
+        }
+        prev_o = JSON.parse(JSON.stringify(origin));
+        prev_o.x = prev_o.x + 0.001;
+        // console.log(origin)
+        hull.push(origin);
+        while (true) {
+          let candidate = findNextOrigin(prev_o, origin, points);
+          if (hull.some((item) => shallowEqualityCheck(item, candidate))) {
+            break;
+          }
+          hull.push(candidate);
+          prev_o = JSON.parse(JSON.stringify(origin));
+          origin = JSON.parse(JSON.stringify(candidate));
+        }
+
+        return hull;
+      }
+
+      function measureRuntime(inputSize) {
+        let start = performance.now();
+        let result = Jarvis(inputSize);
+        let end = performance.now();
+        return end - start;
+      }
+
+      let inputSizes = [10, 50, 100, 500, 1000, 5000, 10000];
+      let runtimes = inputSizes.map(measureRuntime);
+
+      let ctx = document.getElementById("myChart").getContext("2d");
+      let chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: inputSizes,
+          datasets: [
+            {
+              label: "Runtime",
+              data: runtimes,
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "Input Size",
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: "Runtime (ms)",
+              },
+            },
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

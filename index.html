@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visualize Convex hull</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.0/svg.min.js"
+      integrity="sha512-EmfT33UCuNEdtd9zuhgQClh7gidfPpkp93WO8GEfAP3cLD++UM1AG9jsTUitCI9DH5nF72XaFePME92r767dHA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="headerCont">
+      <div class="header">Visualize Convex Hull</div>
+      <!-- <p class="subHeader">
+        Done by: Bhaarath K, Raguram Venkatesan, Suman Sekhar Sahoo, Kamalesh
+        Ram R, Sandeep YSP
+      </p> -->
+      <div class="links">
+        <a href="/out/" class="link">Documentation</a>
+        <a
+          href="https://github.com/sumansekharsahoo/Visualize-ConvexHull-Algorithms"
+          class="link"
+          >Github</a
+        >
+      </div>
+    </header>
+    <div class="container">
+      <div class="algoHeading">Jarvis March</div>
+      <div id="jarvisMarch"></div>
+      <div class="buttons">
+        <button id="jmRun" class="btn run">Run</button>
+        <button id="jmRand" class="btn rand">Random</button>
+        <button id="jmLClr" class="btn rply">Restart</button>
+        <button id="jmClr" class="btn clr">Clear</button>
+        <select id="selBox">
+          <option value="400">normal</option>
+          <option value="200">fast</option>
+          <option value="600">slow</option>
+          <option value="1000">very slow</option>
+          <option value="80">very fast</option>
+          <option value="5">Insanely fast</option>
+        </select>
+      </div>
+    </div>
+    <div class="container">
+      <div class="algoHeading">Kirk Patrick Seidel</div>
+      <div id="kirkPS"></div>
+      <div class="buttons">
+        <button id="kpsRun" class="btn run">Run</button>
+        <button id="kpsRand" class="btn rand">Random</button>
+        <button id="kpsLClr" class="btn rply">Restart</button>
+        <button id="kpsClr" class="btn clr">Clear</button>
+        <select id="selBox2">
+          <option value="400">normal</option>
+          <option value="200">fast</option>
+          <option value="600">slow</option>
+          <option value="1000">very slow</option>
+          <option value="80">very fast</option>
+          <option value="5">Insanely fast</option>
+        </select>
+      </div>
+      <div>
+        <div class="lhead">Legend:</div>
+        <div id="legend"></div>
+      </div>
+    </div>
+    <div class="footer">
+      Done by: Bhaarath K, Suman Sekhar Sahoo, Raguram Venkatesan, Kamalesh Ram
+      R, YSP Sandeep
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

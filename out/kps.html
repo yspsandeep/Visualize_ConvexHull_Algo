@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>KPS Input Size vs Runtime Plot</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <canvas id="myChart"></canvas>
+    <script>
+      //Kirkpatrick-Seidel Algorithm
+      function flipped(points) {
+        return points.map((point) => [-point[0], -point[1]]);
+      }
+
+      function printMat(points) {
+        for (let point of points) {
+          let x = point[0],
+            y = point[1];
+          console.log(x + " " + y);
+        }
+      }
+
+      function integerDivision(dividend, divisor) {
+        return Math.floor(dividend / divisor);
+      }
+
+      function popFromSet(set) {
+        const iterator = set.values();
+        const first = iterator.next().value;
+        set.delete(first);
+        return first;
+      }
+
+      function quickselect(points, k) {
+        let sortedPoints = points.sort((a, b) => {
+          if (a[0] !== b[0]) return a[0] - b[0];
+          else return a[1] - b[1];
+        });
+        return sortedPoints[k];
+      }
+
+      function getBridge(points, median) {
+        // console.log(median)
+        // console.log(points)
+        let candidates = new Set();
+        if (points.length === 2) {
+          sortedPoints = points.sort((a, b) => {
+            if (a[0] !== b[0]) return a[0] - b[0];
+            else return a[1] - b[1];
+          });
+          return sortedPoints;
+        }
+
+        let pairs = [];
+        let points_set = new Set(points);
+        // console.log("Set: ", points_set)
+
+        while (points_set.size >= 2) {
+          let pair = [];
+          pair.push(popFromSet(points_set));
+          pair.push(popFromSet(points_set));
+          pair = pair.sort((a, b) => {
+            if (a[0] !== b[0]) return a[0] - b[0];
+            else return a[1] - b[1];
+          });
+          pairs.push(pair);
+        }
+        // console.log("PAIRS :", pairs)
+
+        if (points_set.size === 1) candidates.add(popFromSet(points_set));
+        let slopes = [];
+        for (let i = 0; i < pairs.length; i++) {
+          let p1 = pairs[i][0];
+          let p2 = pairs[i][1];
+          if (p1[0] === p2[0]) {
+            if (p1[1] > p1[1]) candidates.add(p1);
+            else candidates.add(p2);
+            pairs.splice(i, 1);
+            i--;
+          } else {
+            let slope = (p1[1] - p2[1]) / (p1[0] - p2[0]);
+            slopes.push(slope);
+          }
+        }
+
+        let med_index =
+          Math.floor(slopes.length / 2) - (slopes.length % 2 === 0 ? 1 : 0);
+        let med_slope = quickselect(slopes, med_index);
+        let small = [],
+          equal = [],
+          large = [];
+
+        for (let i in slopes) {
+          if (slopes[i] < med_slope) small.push(pairs[i]);
+          else if (slopes[i] > med_slope) large.push(pairs[i]);
+          else equal.push(pairs[i]);
+        }
+
+        let max_intercept = -Infinity;
+        for (let point of points)
+          if (max_intercept < point[1] - med_slope * point[0])
+            max_intercept = point[1] - med_slope * point[0];
+
+        let max_set = new Set();
+        for (let point of points) {
+          if (max_intercept === point[1] - med_slope * point[0]) {
+            max_set.add(point);
+          }
+        }
+
+        // console.log(max_intercept)
+        max_set = Array.from(max_set);
+
+        let left = max_set[0];
+        for (let i = 1; i < max_set.length; i++)
+          if (
+            max_set[i][0] < left[0] ||
+            (max_set[i][0] === left[0] && max_set[i][1] < left[1])
+          )
+            left = max_set[i];
+
+        let right = max_set[0];
+        for (let i = 1; i < max_set.length; i++)
+          if (
+            max_set[i][0] > right[0] ||
+            (max_set[i][0] === right[0] && max_set[i][1] > right[1])
+          )
+            right = max_set[i];
+
+        // console.log(left)
+        // console.log(right)
+
+        if (left[0] <= median && right[0] >= median) return [left, right];
+
+        if (right[0] <= median) {
+          let largeEqual = new Set([...large, ...equal]);
+          for (let [_, point] of largeEqual) {
+            candidates.add(point);
+          }
+
+          for (let pair of small) {
+            for (let point of pair) {
+              candidates.add(point);
+            }
+          }
+        }
+
+        if (left[0] > median) {
+          let smallEqual = new Set([...small, ...equal]);
+          for (let [point, _] of smallEqual) {
+            candidates.add(point);
+          }
+
+          for (let pair of large) {
+            for (let point of pair) {
+              candidates.add(point);
+            }
+          }
+        }
+
+        candidates = Array.from(candidates);
+        // console.log("Candidates: ", candidates)
+        // console.log()
+
+        return getBridge(candidates, median);
+      }
+
+      function connect(p1, p2, points) {
+        if (p1 === p2) return [p1];
+        let leftMax = quickselect(
+          points,
+          integerDivision(points.length, 2) - 1
+        );
+        let rightMin = quickselect(points, integerDivision(points.length, 2));
+        let [left, right] = getBridge(points, (leftMax[0] + rightMin[0]) / 2);
+        let small = new Set(),
+          large = new Set();
+
+        small.add(left);
+        for (let point of points) if (point[0] < left[0]) small.add(point);
+
+        large.add(right);
+        for (let point of points) if (point[0] > right[0]) large.add(point);
+
+        small = Array.from(small);
+        large = Array.from(large);
+
+        return connect(p1, left, small).concat(connect(right, p2, large));
+      }
+      function mergeSort(arr) {
+        if (arr.length <= 1) {
+          return arr;
+        }
+
+        const middle = Math.floor(arr.length / 2);
+        const left = arr.slice(0, middle);
+        const right = arr.slice(middle);
+
+        return merge(mergeSort(left), mergeSort(right));
+      }
+
+      function merge(left, right) {
+        let result = [];
+        let leftIndex = 0;
+        let rightIndex = 0;
+
+        while (leftIndex < left.length && rightIndex < right.length) {
+          if (left[leftIndex] < right[rightIndex]) {
+            result.push(left[leftIndex]);
+            leftIndex++;
+          } else {
+            result.push(right[rightIndex]);
+            rightIndex++;
+          }
+        }
+
+        return result
+          .concat(left.slice(leftIndex))
+          .concat(right.slice(rightIndex));
+      }
+
+      function generateRandomNumbers(inputSize) {
+        const numbers = [];
+        for (let i = 0; i < inputSize; i++) {
+          numbers.push(Math.floor(Math.random() * 100));
+        }
+        return numbers;
+      }
+
+      function kpsAlgo(inputSize) {
+        const randomNumbers = generateRandomNumbers(inputSize);
+        console.log("Unsorted numbers:", randomNumbers);
+
+        const sortedNumbers = mergeSort(randomNumbers);
+        console.log("Sorted numbers:", sortedNumbers);
+      }
+
+      function getUpperHull(points) {
+        let leftMost = points[0],
+          rightMost = points[0];
+        for (let i = 1; i < points.length; i++) {
+          if (points[i][0] < leftMost[0]) leftMost = points[i];
+        }
+        for (let i = 0; i < points.length; i++) {
+          if (points[i][0] === leftMost[0] && points[i][1] > leftMost[1])
+            leftMost = points[i];
+        }
+
+        for (let i = 1; i < points.length; i++) {
+          if (points[i][0] > rightMost[0]) rightMost = points[i];
+        }
+        for (let i = 0; i < points.length; i++) {
+          if (points[i][0] === rightMost[0] && points[i][1] > rightMost[1])
+            rightMost = points[i];
+        }
+
+        let newPoints = [];
+        newPoints.push(leftMost);
+        for (let point of points) {
+          if (point[0] > leftMost[0] && point[0] < rightMost[0])
+            newPoints.push(point);
+        }
+        newPoints.push(rightMost);
+        points = newPoints;
+        // console.log("After taking LR: ", points)
+
+        return connect(leftMost, rightMost, points);
+      }
+
+      function convexHull(points) {
+        let upperHull = getUpperHull(points);
+        let flippedPoints = flipped(points);
+        // console.log("Flipped Points: ", flippedPoints)
+        let lowerHull = getUpperHull(flippedPoints);
+        lowerHull = flipped(lowerHull);
+
+        // console.log(upperHull)
+        // console.log(lowerHull)
+
+        if (
+          upperHull[upperHull.length - 1][0] === lowerHull[0][0] &&
+          upperHull[upperHull.length - 1][1] === lowerHull[0][1]
+        )
+          upperHull.pop();
+        if (
+          upperHull[0][0] === lowerHull[lowerHull.length - 1][0] &&
+          upperHull[0][1] === lowerHull[lowerHull.length - 1][1]
+        )
+          lowerHull.pop();
+
+        return upperHull.concat(lowerHull);
+      }
+
+      function generateRandomPoints(numPoints, maxX, maxY) {
+        const points = [];
+
+        for (let i = 0; i < numPoints; i++) {
+          const x = Math.floor(Math.random() * (maxX + 1));
+          const y = Math.floor(Math.random() * (maxY + 1));
+          points.push([x, y]);
+        }
+
+        return points;
+      }
+
+      function main(noOfPoints) {
+        // let points = [[1, 1], [2, 2], [2, 0], [2, 4], [3, 3], [4, 2]]
+        let points = generateRandomPoints(noOfPoints, 500, 500);
+        // console.log(points, points.length);
+
+        console.log(points.length);
+        let ch_points = convexHull(points);
+        // console.log(ch_points)
+        // let cand_points = [[-7, -6], [-8, -7], [-1, -2]]
+        // let ans = getBridge(cand_points, -5.5)
+        console.log("Ans: ", ch_points);
+      }
+
+      function measureRuntime(inputSize) {
+        let start = performance.now();
+        let result = kpsAlgo(inputSize);
+        let end = performance.now();
+        return end - start;
+      }
+
+      let inputSizes = [10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000];
+      let runtimes = inputSizes.map(measureRuntime);
+      let logInputSizes = inputSizes.map((size) => Math.log10(size));
+      let logRuntimes = runtimes.map((runtime) => Math.log10(runtime));
+
+      // Create the chart
+      let ctx = document.getElementById("myChart").getContext("2d");
+      let chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: inputSizes,
+          datasets: [
+            {
+              label: "Runtime",
+              data: runtimes,
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "Input Size",
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: "Runtime (ms)",
+              },
+            },
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
